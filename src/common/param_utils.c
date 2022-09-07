@@ -217,7 +217,12 @@ static char *get_str_attr(const entry_id_t *id, const attr_set_t *attrs,
 #else
         return NULL;
 #endif
-    else
+    else if (attr_index == ATTR_INDEX_creation_time) {
+        char *val_str;
+        asprintf(&val_str, "%u", ATTR(attrs, creation_time));
+        *free_str = true;
+        return val_str;
+    } else
         return (char *)&attrs->attr_values + field_infos[attr_index].offset;
 }
 
@@ -272,6 +277,7 @@ static const struct param_descr std_params[] = {
     {"fullpath", ATTR_INDEX_fullpath, get_str_attr},
     {"fid", -1, get_fid_str},
     {"ost_pool", ATTR_INDEX_stripe_info, get_str_attr},
+    {"creation_time", ATTR_INDEX_creation_time, get_str_attr},
 
     /* global params */
     {"fsname", -1, get_fsname_param},
