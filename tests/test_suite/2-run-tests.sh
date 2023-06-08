@@ -3598,7 +3598,7 @@ function test_size_updt
 
     # create a small file and write it (20 bytes, incl \n)
     echo "qqslmdkqslmdkqlmsdk" > $RH_ROOT/file
-    sleep 1
+    sleep 2
 
     [ "$DEBUG" = "1" ] && $FIND $RH_ROOT/file -f $RBH_CFG_DIR/$config_file -ls
     size=$($FIND $RH_ROOT/file -f $RBH_CFG_DIR/$config_file -ls | awk '{print $(NF-3)}')
@@ -3614,7 +3614,7 @@ function test_size_updt
 
     # now appending the file (+20 bytes, incl \n)
     echo "qqslmdkqslmdkqlmsdk" >> $RH_ROOT/file
-    sleep 1
+    sleep 2
 
     [ "$DEBUG" = "1" ] && $FIND $RH_ROOT/file -f $RBH_CFG_DIR/$config_file -ls
     size=$($FIND $RH_ROOT/file -f $RBH_CFG_DIR/$config_file -ls | awk '{print $(NF-3)}')
