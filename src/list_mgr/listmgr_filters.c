@@ -374,6 +374,9 @@ static bool allow_null(unsigned int attr_index,
     if (*comp == ISNULL || *comp == NOTNULL)
         return false;
 
+    if (is_stripe_field(attr_index))
+        return false;
+
     /* allow NULL for strings if matching is:
      * x != 'non empty val' (or x not like 'non empty')
      * x == '' (or x like '')

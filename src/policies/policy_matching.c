@@ -745,7 +745,7 @@ int criteria2filter(const compare_triplet_t *p_comp,
     case CRITERIA_OST:
         *p_attr_index = ATTR_INDEX_stripe_items;
         *p_compar = Policy2FilterComparator(p_comp->op, p_comp->flags);
-        p_value->value.val_uint = p_comp->val.integer;
+        p_value->value.val_str = p_comp->val.str;
         break;
 #endif
 
@@ -1127,15 +1127,37 @@ static policy_match_t eval_condition(const entry_id_t *p_entry_id,
             CHECK_ATTR(p_entry_attr, stripe_items, no_warning);
 
             for (i = 0; i < ATTR(p_entry_attr, stripe_items).count; i++) {
-                if (ATTR(p_entry_attr, stripe_items).stripe[i].ost_idx ==
-                    p_triplet->val.integer) {
+                int stripe_index = -1;
+                int ost_index;
+                char *p_ost_index;
+                char value[32];
+
+                /* support optional stripe_index:ost_index notation */
+                rh_strncpy(value, p_triplet->val.str, sizeof(value));
+                if ((p_ost_index = strchr(value, ':'))) {
+                    *p_ost_index++ = '\0';
+                    stripe_index = str2int(value);
+                } else
+                    p_ost_index = value;
+                ost_index = str2int(p_ost_index);
+
+                if ((stripe_index < 0 || stripe_index == i) &&
+                    (ATTR(p_entry_attr, stripe_items).stripe[i].ost_idx ==
+                     ost_index)) {
                     /* if comparator is ==, at least 1 OST must match,
                      * if the cmp is !=, none must match */
                     if (p_triplet->op == COMP_DIFF)
                         return POLICY_NO_MATCH;
-                    else if (p_triplet->op == COMP_EQUAL)
+                    else if (p_triplet->op == COMP_EQUAL) {
+                        DisplayLog(LVL_FULL, POLICY_TAG, "CRITERIA_OST: " \
+                                   "successful match for '%s' " \
+                                   "stripe_index='%d' ost_index='%d'",
+                                   p_triplet->val.str, stripe_index, ost_index);
                         return POLICY_MATCH;
+                    }
                 }
+                if (stripe_index >= 0 && stripe_index <= i)
+                    break; /* will never match */
             }
             /* no matching OST:
              * - if the operator is !=, the entry matches
