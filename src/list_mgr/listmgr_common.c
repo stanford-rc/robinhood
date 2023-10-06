@@ -1217,12 +1217,6 @@ static void attr2filter_field(GString *str, table_enum table,
 
             g_string_append(str, field_name(attr));
         }
-    } else if ((table == T_STRIPE_ITEMS || table == T_NONE)
-               && (field_type(attr) == DB_STRIPE_ITEMS)) {
-        if (prefix_table)
-            g_string_append_printf(str, "%s.", STRIPE_ITEMS_TABLE);
-
-        g_string_append(str, "ostidx");
     } else if ((table == T_STRIPE_INFO || table == T_NONE)
                && (field_type(attr) == DB_STRIPE_INFO)) {
         /* XXX Assume that the only possible filter here is on pool_name */
@@ -1455,17 +1449,41 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                     for (j = 0;
                          j < p_filter->filter_simple.filter_value[i].list.count;
                          j++) {
+                        int ost_index = str2int(list[j].val_str);
                         g_string_append_printf(str, "%s%u", j == 0 ? "" : ",",
-                                               list[j].val_uint);
+                                               ost_index);
                     }
                     g_string_append(str, ")");
                 } else {    /* single value */
+                    int stripe_index = -1;
+                    int ost_index;
+                    char *p_ost_index;
+                    char value[32];
 
-                    g_string_append_printf(str, "%s%u",
+                    /* support optional stripe_index:ost_index notation */
+                    rh_strncpy(value, p_filter->filter_simple.filter_value[i].
+                               value.val_str, sizeof(value));
+                    if ((p_ost_index = strchr(value, ':'))) {
+                        *p_ost_index++ = '\0';
+                        stripe_index = str2int(value);
+                    } else
+                        p_ost_index = value;
+                    ost_index = str2int(p_ost_index);
+
+                    if (stripe_index >= 0) {
+                        if (prefix_table)
+                            g_string_append_printf(str, "%s.", STRIPE_ITEMS_TABLE);
+                        g_string_append_printf(str, "stripe_index%s%u AND ",
+                                               compar2str(p_filter->filter_simple.
+                                                          filter_compar[i]),
+                                                stripe_index);
+                    }
+                    if (prefix_table)
+                        g_string_append_printf(str, "%s.", STRIPE_ITEMS_TABLE);
+                    g_string_append_printf(str, "ostidx%s%u",
                                            compar2str(p_filter->filter_simple.
                                                       filter_compar[i]),
-                                           p_filter->filter_simple.
-                                           filter_value[i].value.val_uint);
+                                           ost_index);
                 }
                 nbfields++;
             } else if ((table == T_STRIPE_INFO || table == T_NONE)
