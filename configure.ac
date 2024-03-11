@@ -4,7 +4,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT( [robinhood], [3.1.7], [robinhood-support@lists.sourceforge.net])
+AC_INIT( [robinhood], [3.1.7.6], [robinhood-support@lists.sourceforge.net])
 RELEASE="1"
 
 AC_DEFINE_UNQUOTED(RELEASE, "$RELEASE", [release info])
@@ -35,7 +35,6 @@ AC_CONFIG_FILES([Makefile
          src/policies/Makefile
          src/robinhood/Makefile
          src/tools/Makefile
-         src/tests/Makefile
          scripts/Makefile
          scripts/robinhood.init
          scripts/robinhood.init.sles
@@ -44,8 +43,6 @@ AC_CONFIG_FILES([Makefile
          scripts/sysconfig_robinhood
          scripts/ld.so.robinhood.conf
          scripts/rbh_cksum.sh
-         tests/Makefile
-         tests/test_suite/Makefile
          web_gui/Makefile
          man/Makefile
          robinhood.spec
