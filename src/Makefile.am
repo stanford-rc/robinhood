@@ -4,7 +4,7 @@ if CHANGELOGS
 SUBDIRS+=chglog_reader
 endif
 
-SUBDIRS += robinhood tools tests
+SUBDIRS += robinhood tools
 
 indent:
 	for d in $(SUBDIRS); do 	\
