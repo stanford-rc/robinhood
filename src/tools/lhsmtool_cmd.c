@@ -167,11 +167,6 @@ static inline double ct_now(void)
 	return tv.tv_sec + 0.000001 * tv.tv_usec;
 }
 
-static inline pid_t gettid(void)
-{
-	return syscall(SYS_gettid);
-}
-
 #define LOG_ERROR(_rc, _format, ...)					\
 	llapi_error(LLAPI_MSG_ERROR, _rc,				\
 		    "%f %s[%d]: "_format,				\
