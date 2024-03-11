@@ -290,7 +290,7 @@ install -m 444 scripts/robinhood@.service $RPM_BUILD_ROOT/%{_unitdir}/robinhood@
 %endif
 
 
-%else # with_systemd
+%else
 mkdir -p $RPM_BUILD_ROOT/%{_initrddir}
 
 %if %{defined suse_version}
@@ -331,7 +331,7 @@ if [ "$1" = 0 ]; then
     fi
   fi
 fi
-%endif # with_systemd
+%endif
 
 %if %{with lustre}
 %postun lustre
@@ -344,7 +344,7 @@ fi
 %if %{defined suse_version}
 %service_del_postun robinhood.service robinhood@.service
 %else
-%systemd_postun
+%systemd_postun robinhood.service
 %endif
 %endif
 
@@ -381,12 +381,6 @@ rm -rf $RPM_BUILD_ROOT
 %{installdir_www}/robinhood
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/robinhood.conf
 
-
-%files tests
-%defattr(-,root,root,-)
-%dir %{_datadir}/robinhood/
-%{_datadir}/robinhood/tests/
-%{_datadir}/robinhood/doc/
 
 %endif
 
