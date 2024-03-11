@@ -381,6 +381,10 @@ rm -rf $RPM_BUILD_ROOT
 %{installdir_www}/robinhood
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/robinhood.conf
 
+%files tests
+%defattr(-,root,root,-)
+%dir %{_datadir}/robinhood/
+%{_datadir}/robinhood/doc/
 
 %endif
 
