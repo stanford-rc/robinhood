@@ -35,7 +35,6 @@ AC_CONFIG_FILES([Makefile
          src/policies/Makefile
          src/robinhood/Makefile
          src/tools/Makefile
-         src/tests/Makefile
          doc/Makefile
          doc/templates/Makefile
          scripts/Makefile
@@ -46,8 +45,6 @@ AC_CONFIG_FILES([Makefile
          scripts/sysconfig_robinhood
          scripts/ld.so.robinhood.conf
          scripts/rbh_cksum.sh
-         tests/Makefile
-         tests/test_suite/Makefile
          web_gui/Makefile
          man/Makefile
          robinhood.spec
