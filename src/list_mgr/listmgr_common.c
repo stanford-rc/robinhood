@@ -986,6 +986,10 @@ char *compar2str(filter_comparator_t compar)
         return " IS NULL";
     case NOTNULL:
         return " IS NOT NULL";
+    case SET_MEMBER:
+        DisplayLog(LVL_CRIT, LISTMGR_TAG,
+            "compar2str() called with SET_MEMBER, should be handled specially in filter2str!");
+        return "";
     }
 
     DisplayLog(LVL_CRIT, LISTMGR_TAG,
@@ -1305,6 +1309,24 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                            "Ignoring filter on generated field '%s'",
                            field_name(index));
                 continue;
+            }
+
+            if (index == ATTR_INDEX_fileclass_set &&
+                p_filter->filter_simple.filter_compar[i] == SET_MEMBER &&
+                table == T_MAIN) { // <--- only emit for ENTRIES context
+
+                const char *v = p_filter->filter_simple.filter_value[i].value.val_str;
+
+                if (nbfields > 0 || leading_and)
+                    g_string_append(str, " AND ");
+
+                if (p_filter->filter_simple.filter_flags[i] & FILTER_FLAG_NOT) {
+                    g_string_append_printf(str, "NOT FIND_IN_SET('%s', ENTRIES.fileclass_set)", v);
+                } else {
+                    g_string_append_printf(str, "FIND_IN_SET('%s', ENTRIES.fileclass_set)", v);
+                }
+                nbfields++;
+                continue; // skip legacy handling
             }
 
             if (match || (table == T_NONE)) {

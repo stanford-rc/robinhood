@@ -153,14 +153,21 @@ void display_report(const report_field_descr_t *descr,
 /** convert a list of attribute indexes into a attribute mask. */
 attr_mask_t list2mask(unsigned int *attr_list, int attr_count);
 
-static inline const char *class_format(const char *class_name)
+static inline const char *class_format(const char *class_name, char *out, size_t out_sz)
 {
-    if (class_name == NULL)
-        return "[n/a]";
-    else if (EMPTY_STRING(class_name))
-        return "[none]";
-
-    return class_name;
+    if (class_name == NULL) {
+        snprintf(out, out_sz, "[n/a]");
+    } else if (EMPTY_STRING(class_name)) {
+        snprintf(out, out_sz, "[none]");
+    } else if (strchr(class_name, ',')) {
+        size_t i, j;
+        for (i = 0, j = 0; class_name[i] && j < out_sz - 1; ++i)
+            out[j++] = (class_name[i] == ',' ? '+' : class_name[i]);
+        out[j] = '\0';
+    } else {
+        snprintf(out, out_sz, "%s", class_name);
+    }
+    return out;
 }
 
 static inline const char *status_format(const char *name)

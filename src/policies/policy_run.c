@@ -934,20 +934,17 @@ static void set_rule_filters(policy_info_t *policy,
         if (tc > 0) {
             filter_value_t fval;
 
-            /* if tc > 1, make a subblock with ORed fielclasses */
+            /* if tc > 1, make a subblock with ORed fileclasses */
             if (tc > 1)
                 lmgr_simple_filter_add_block(p_filter, FILTER_FLAG_BEGIN_BLOCK);
-
-            memset(&fval, 0, sizeof(fval));
 
             bool first = 1;
             for (j = 0; j < rule->target_count; j++) {
                 if (rule->target_list[j]->matchable) {
-                    fval.value.val_str =
-                        rule->target_list[j]->fileset_id;
-                    lmgr_simple_filter_add(p_filter, ATTR_INDEX_fileclass,
-                                           EQUAL, fval,
-                                           first ? 0 : FILTER_FLAG_OR);
+                    // strdup to be safe, or let the caller guarantee lifetime
+                    fval.value.val_str = strdup(rule->target_list[j]->fileset_id);
+                    lmgr_simple_filter_add(p_filter, ATTR_INDEX_fileclass_set, SET_MEMBER,
+                                           fval, first ? 0 : FILTER_FLAG_OR);
                     first = 0;
                 }
             }
@@ -1450,18 +1447,34 @@ static int set_target_filter(const policy_info_t *pol,
                                                    name) ? LIKE : EQUAL,
                                       fval, 0);
 
-    case TGT_CLASS:    /* apply policies to the specified fileclass */
+	case TGT_CLASS:    /* apply policies to the specified fileclass */
         DisplayLog(LVL_MAJOR, tag(pol),
                    "Starting policy run on fileclass '%s'",
                    p_param->optarg_u.name);
 
-        attr_mask->std |= ATTR_MASK_fileclass;
+        attr_mask->std |= ATTR_MASK_fileclass_set;
 
-        fval.value.val_str = p_param->optarg_u.name;
-        return lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass,
-                                      WILDCARDS_IN(fval.value.
-                                                   val_str) ? LIKE : EQUAL,
-                                      fval, 0);
+        /* split class name into tokens by '+' or ',' for AND matching */
+        {
+            char *tmp = strdup(p_param->optarg_u.name);
+            char *tok, *saveptr = NULL;
+            int rc = 0;
+
+            tok = strtok_r(tmp, "+,", &saveptr);
+            while (tok) {
+                fval.value.val_str = strdup(tok);
+                rc = lmgr_simple_filter_add(filter,
+                                            ATTR_INDEX_fileclass_set,
+                                            SET_MEMBER,
+                                            fval,
+                                            0); // AND logic
+                if (rc)
+                    break;
+                tok = strtok_r(NULL, "+,", &saveptr);
+            }
+            free(tmp);
+            return rc;
+        }
 
     case TGT_FILE:
         /* this is supposed to be handled by specific code:

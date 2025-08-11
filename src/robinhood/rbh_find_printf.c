@@ -597,6 +597,7 @@ static void printf_date(const struct fchunk *chunk, time_t date)
 void printf_entry(GArray *chunks, const wagon_t *id, const attr_set_t *attrs)
 {
     int i;
+    char class_buf[1024] = "";
 
     for (i = 0; i < chunks->len; i++) {
         struct fchunk *chunk = &g_array_index(chunks, struct fchunk, i);
@@ -726,7 +727,8 @@ void printf_entry(GArray *chunks, const wagon_t *id, const attr_set_t *attrs)
             case 'c':
                 printf(format,
                        class_format(ATTR_MASK_TEST(attrs, fileclass) ?
-                                    ATTR(attrs, fileclass) : NULL));
+                                    ATTR(attrs, fileclass) : NULL,
+                                    class_buf, sizeof(class_buf)));
                 break;
 
             case 'f':

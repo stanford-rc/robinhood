@@ -503,6 +503,7 @@ typedef enum {
     NOTIN,
     ISNULL,
     NOTNULL,
+    SET_MEMBER,        // new: for FIND_IN_SET
 } filter_comparator_t;
 
 /** filter values associated to db_type field in field_infos array */

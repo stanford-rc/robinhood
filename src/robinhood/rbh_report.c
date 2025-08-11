@@ -1178,18 +1178,32 @@ static int append_path_filter(lmgr_filter_t *filter, bool *initialized)
  */
 static int append_class_filter(lmgr_filter_t *filter, bool *initialized)
 {
+    char *tmp, *tok, *saveptr = NULL;
     filter_value_t fv;
+    int rc = 0;
 
     if ((initialized != NULL) && !(*initialized)) {
         lmgr_simple_filter_init(filter);
         *initialized = true;
     }
 
-    fv.value.val_str = class_filter;
+    // Duplicate the class_filter so we can split it.
+    tmp = strdup(class_filter);
+    if (!tmp)
+        return -ENOMEM;
 
-    /* list manager as a specific fileclass management,
-     * as fileclass attr may be a list of fileclasses */
-    return lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass, LIKE, fv, 0);
+    tok = strtok_r(tmp, "+,", &saveptr); // Accept both '+' and ',' as separator
+    while (tok != NULL) {
+        fv.value.val_str = strdup(tok); // important
+        rc = lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass_set, SET_MEMBER,
+                                     fv, 0); /* AND logic is default */
+        if (rc)
+            break;
+        tok = strtok_r(NULL, "+,", &saveptr);
+    }
+    free(tmp);
+
+    return rc;
 }
 
 /**
@@ -1218,6 +1232,7 @@ static int append_project_filter(lmgr_filter_t *filter, bool *initialized)
 static int mk_global_filters(lmgr_filter_t *filter, bool do_display,
                              bool *initialized)
 {
+    char class_buf[1024] = "";
     int rc;
 
     /* is a filter on path specified? */
@@ -1232,7 +1247,8 @@ static int mk_global_filters(lmgr_filter_t *filter, bool do_display,
 
     if (!EMPTY_STRING(class_filter)) {
         if (do_display)
-            printf("filter class: %s\n", class_format(class_filter));
+            printf("filter class: %s\n", class_format(class_filter,
+                    class_buf, sizeof(class_buf)));
 
         rc = append_class_filter(filter, initialized);
         if (rc)
@@ -1357,7 +1373,7 @@ static void dump_entries(type_dump type, int int_arg, char *str_arg,
         ATTR_INDEX_size,
         ATTR_INDEX_uid,
         ATTR_INDEX_gid,
-        ATTR_INDEX_fileclass
+        ATTR_INDEX_fileclass_set
     };
 
     static unsigned int list_status[] = {
@@ -1366,7 +1382,7 @@ static void dump_entries(type_dump type, int int_arg, char *str_arg,
         ATTR_INDEX_size,
         ATTR_INDEX_uid,
         ATTR_INDEX_gid,
-        ATTR_INDEX_fileclass,
+        ATTR_INDEX_fileclass_set,
         ATTR_INDEX_fullpath,
     };
 
@@ -2020,7 +2036,7 @@ static void report_topsize(unsigned int count, int flags)
         ATTR_INDEX_gid,
         ATTR_INDEX_last_access,
         ATTR_INDEX_last_mod,
-        ATTR_INDEX_fileclass,
+        ATTR_INDEX_fileclass_set,
         ATTR_INDEX_stripe_info,
         ATTR_INDEX_stripe_items
     };
@@ -3105,7 +3121,7 @@ int main(int argc, char **argv)
                               flags | OPT_FLAG_GROUP);
 
     if (class_info)
-        report_groupby(ATTR_INDEX_fileclass, flags);
+        report_groupby(ATTR_INDEX_fileclass_set, flags);
 
     if (project_info)
         report_groupby(ATTR_INDEX_projid, flags);

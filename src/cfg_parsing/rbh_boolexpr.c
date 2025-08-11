@@ -1058,6 +1058,8 @@ const char *op2str(compare_direction_t comp)
         return " !~ ";
     case COMP_NONE:
         return "?";
+    case COMP_SET_MEMBER:
+        return " in SET ";
     }
     return "?";
 }   /* op2str */

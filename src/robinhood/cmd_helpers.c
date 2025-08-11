@@ -627,6 +627,9 @@ const char *attr2str(attr_set_t *attrs, const entry_id_t *id,
     case ATTR_INDEX_fileclass:
         return ATTR(attrs, fileclass);
 
+    case ATTR_INDEX_fileclass_set:
+        return class_format(ATTR(attrs, fileclass_set), out, out_sz);
+
     case ATTR_INDEX_class_update:
         tt = ATTR(attrs, class_update);
         strftime(out, out_sz, "%Y/%m/%d %T", localtime_r(&tt, &stm));
@@ -695,7 +698,8 @@ static const char *print_res_sm_info(const db_value_t *val, bool csv,
 static const char *print_res_class(const db_value_t *val, bool csv,
                                    char *out, size_t out_sz)
 {
-    return class_format(val->value_u.val_str);
+    static char class_buf[1024] = "";
+    return class_format(val->value_u.val_str, class_buf, sizeof(class_buf));
 }
 
 static const char *print_res_count(const db_value_t *val, bool csv,
@@ -768,7 +772,7 @@ static struct attr_display_spec {
         {ATTR_INDEX_gid,       "group", 10, 10, print_res_string},
         {ATTR_INDEX_projid,    "projid", 10, 10, print_res_int},
         {ATTR_INDEX_link,      "link", 20, 20},
-        {ATTR_INDEX_fileclass, "fileclass", 30, 30, print_res_class},
+        {ATTR_INDEX_fileclass_set, "fileclass", 30, 30, print_res_class},
         /* times */
         {ATTR_INDEX_last_access,   "last_access", 20, 20},
         {ATTR_INDEX_last_mod,      "last_mod", 20, 20},

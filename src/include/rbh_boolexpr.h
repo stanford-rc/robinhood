@@ -38,6 +38,7 @@ typedef enum {
     COMP_DIFF,                  /**<     != */
     COMP_LIKE,                  /**<     regexp matching */
     COMP_UNLIKE,                /**<     regexp not matching */
+    COMP_SET_MEMBER,            /**<     member of SET */
 } compare_direction_t;
 
 typedef enum {

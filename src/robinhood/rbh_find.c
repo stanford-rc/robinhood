@@ -131,7 +131,7 @@ static const attr_mask_t LSOST_DISPLAY_MASK = {.std = ATTR_MASK_size
 };
 #endif
 static const attr_mask_t LSCLASS_DISPLAY_MASK = {.std = ATTR_MASK_size
-        | ATTR_MASK_fileclass
+        | ATTR_MASK_fileclass_set
 };
 static const attr_mask_t LSSTATUS_DISPLAY_MASK = {.std = ATTR_MASK_size };
 
@@ -326,7 +326,7 @@ static int mkfilters(bool exclude_dirs)
         else
             AppendBoolCond(&match_expr, comp, CRITERIA_FILECLASS, val, 0);
         is_expr = 1;
-        query_mask.std |= ATTR_MASK_fileclass;
+        query_mask.std |= ATTR_MASK_fileclass_set;
     }
 #ifdef _LUSTRE
     if (prog_options.match_ost) {
@@ -841,6 +841,7 @@ static int set_time_filter(char *str, unsigned int multiplier,
 static void print_entry(const wagon_t *id, const attr_set_t *attrs)
 {
     char classbuf[1028] = "";
+    char classfmtbuf[1024] = "";
     char statusbuf[1024] = "";
     GString *osts = NULL;
 
@@ -860,8 +861,9 @@ static void print_entry(const wagon_t *id, const attr_set_t *attrs)
     if (prog_options.lsclass) {
         /* leave a space before and after */
         snprintf(classbuf, sizeof(classbuf), " %-20s ",
-                 class_format(ATTR_MASK_TEST(attrs, fileclass) ?
-                              ATTR(attrs, fileclass) : NULL));
+                 class_format(ATTR_MASK_TEST(attrs, fileclass_set) ?
+                              ATTR(attrs, fileclass_set) : NULL,
+                              classfmtbuf, sizeof(classfmtbuf)));
     }
 
     /* prepare status display buffer */
