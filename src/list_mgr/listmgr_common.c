@@ -92,6 +92,7 @@ void printdbtype(db_conn_t *pconn, GString *str, db_type_e type,
             g_string_append(str, "0");
         break;
     case DB_ENUM_FTYPE:
+    case DB_SET:
         /* don't escape: type value is trusted (not from user) */
         g_string_append_printf(str, "'%s'", value_ptr->val_str);
         break;
@@ -152,6 +153,7 @@ int ListMgr_PrintAttr(GString *str, db_type_e type,
         return 0;
 
     case DB_ENUM_FTYPE:
+    case DB_SET:
         g_string_append_printf(str, "%s%s%s", quote, value_ptr->val_str, quote);
         return 0;
 
@@ -188,6 +190,7 @@ int parsedbtype(char *str_in, db_type_e type, db_type_u *value_out)
 
     case DB_TEXT:
     case DB_ENUM_FTYPE:
+    case DB_SET:
         value_out->val_str = str_in;
         return 1;
 

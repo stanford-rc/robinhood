@@ -31,6 +31,7 @@ static inline void assign_union(db_type_u *const tgt, db_type_e type,
         tgt->val_id = *(entry_id_t *)src;
         break;
     case DB_ENUM_FTYPE:
+    case DB_SET:
     case DB_TEXT:
         tgt->val_str = (char *)src;
         break;
@@ -77,6 +78,7 @@ static inline void union_get_value(void *tgt, db_type_e type,
         break;
     case DB_TEXT:
     case DB_ENUM_FTYPE:
+    case DB_SET:
         strcpy(tgt, src->val_str);
         break;
     case DB_UIDGID:
@@ -121,6 +123,7 @@ static inline int diff_union(db_type_e type, const void *addr1,
         return !entry_id_equal((const entry_id_t *)addr1,
                                (const entry_id_t *)addr2);
     case DB_ENUM_FTYPE:
+    case DB_SET:
     case DB_TEXT:
         return strcmp((char *)addr1, (char *)addr2);
     case DB_UIDGID:
@@ -171,6 +174,7 @@ static inline void *dup_value(db_type_e db_type, db_type_u uval)
         TYPE_DUP(entry_id_t, ptr, &uval.val_id);
         break;
     case DB_ENUM_FTYPE:
+    case DB_SET:
     case DB_TEXT:
         ptr = strdup(uval.val_str);
         break;

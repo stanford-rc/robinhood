@@ -62,6 +62,7 @@ typedef enum {
     DB_BOOL,    /**< boolean            */
     DB_ENUM_FTYPE, /**< file type enumeration */
     DB_UIDGID, /**< type depending on uid/gid format (configuration driven) */
+    DB_SET     /**< MySQL SET */
 } db_type_e;
 
 /** generic function for generating fields:

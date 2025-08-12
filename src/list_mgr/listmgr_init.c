@@ -115,6 +115,10 @@ static void append_sql_type(GString *str, db_type_e type, unsigned int size)
                 append_sql_type(str, DB_TEXT, RBH_LOGIN_MAX - 1);
         }
         break;
+    case DB_SET:
+        g_string_append_printf(str,
+                               "set('system', 'mr_test_minio_n0','mr_test_minio_n1','mr_test_minio_n2','mr_test_minio_n3','mr_test2_minio_n0','mr_test2_minio_n1','mr_test2_minio_n2','mr_test2_minio_n3','mr_srcc_minio_n0','mr_srcc_minio_n1','mr_srcc_minio_n2','mr_srcc_minio_n3','mr_hnc_minio_n0','mr_hnc_minio_n1','mr_hnc_minio_n2','mr_hnc_minio_n3','mr_bil_minio_n0','mr_bil_minio_n1','mr_bil_minio_n2','mr_bil_minio_n3','mr_dlab_minio_n0','mr_dlab_minio_n1','mr_dlab_minio_n2','mr_dlab_minio_n3','mr_campus_minio_n0','mr_campus_minio_n1','mr_campus_minio_n2','mr_campus_minio_n3','hr_campus_minio_n0','hr_campus_minio_n1','hr_campus_minio_n2','hr_campus_minio_n3')");
+        break;
     }
 }
 
