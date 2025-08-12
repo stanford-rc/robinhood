@@ -1621,7 +1621,7 @@ int EntryProc_pre_apply(struct entry_proc_op_t *p_op, lmgr_t *lmgr)
          * don't set update timestamp.
          */
         if ((updt_params.fileclass.when == UPDT_ALWAYS)
-            && !ATTR_MASK_TEST(&p_op->fs_attrs, fileclass))
+            && !ATTR_MASK_TEST(&p_op->fs_attrs, fileclass_set))
             ATTR_MASK_UNSET(&p_op->fs_attrs, class_update);
 
         /* nothing changed => noop */

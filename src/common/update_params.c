@@ -343,10 +343,10 @@ bool need_fileclass_update(const attr_set_t *p_attrs)
     const char *match = "";
 
     is_set = ATTR_MASK_TEST(p_attrs, class_update)
-        && ATTR_MASK_TEST(p_attrs, fileclass);
+        && ATTR_MASK_TEST(p_attrs, fileclass_set);
     if (is_set) {
         last = ATTR(p_attrs, class_update);
-        match = ATTR(p_attrs, fileclass);
+        match = ATTR(p_attrs, fileclass_set);
     }
 
     /* check for periodic fileclass matching */

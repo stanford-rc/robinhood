@@ -981,8 +981,12 @@ static void set_ignore_filters(policy_info_t *policy, lmgr_filter_t *filter)
             flags = FILTER_FLAG_NOT_BEGIN | FILTER_FLAG_NOT_END;
         else
             flags = FILTER_FLAG_NOT;
-        lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass, EQUAL,
-                               fval, flags);
+        /* check rc? */
+        lmgr_simple_filter_add(filter,
+                               ATTR_INDEX_fileclass_set,
+                               SET_MEMBER,
+                               fval,
+                               flags);
     }
 
     /* don't select entries maching 'ignore' statements */

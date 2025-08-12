@@ -174,7 +174,7 @@ static struct criteria_descr_t {
     [CRITERIA_OST] =
         {"ost_index", ATTR_MASK_stripe_items, PT_INT, PFLG_POSITIVE, 0},
 #endif
-    [CRITERIA_FILECLASS] = {"fileclass", ATTR_MASK_fileclass, PT_STRING,
+    [CRITERIA_FILECLASS] = {"fileclass", ATTR_MASK_fileclass_set, PT_STRING,
                             PFLG_NO_SLASH, CMP_FLG_INSENSITIVE},
     /* status mask is context dependent */
     [CRITERIA_STATUS] =

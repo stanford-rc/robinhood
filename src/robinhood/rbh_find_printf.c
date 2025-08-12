@@ -458,7 +458,7 @@ static const char *extract_chunk(const char *str, struct fchunk *chunk)
                 break;
 
             case 'c':
-                disp_mask.std |= ATTR_MASK_fileclass;
+                disp_mask.std |= ATTR_MASK_fileclass_set;
                 g_string_append_c(chunk->format, 's');
                 break;
 
@@ -726,8 +726,8 @@ void printf_entry(GArray *chunks, const wagon_t *id, const attr_set_t *attrs)
 
             case 'c':
                 printf(format,
-                       class_format(ATTR_MASK_TEST(attrs, fileclass) ?
-                                    ATTR(attrs, fileclass) : NULL,
+                       class_format(ATTR_MASK_TEST(attrs, fileclass_set) ?
+                                    ATTR(attrs, fileclass_set) : NULL,
                                     class_buf, sizeof(class_buf)));
                 break;
 

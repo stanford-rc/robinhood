@@ -732,7 +732,7 @@ int criteria2filter(const compare_triplet_t *p_comp,
         break;
 
     case CRITERIA_FILECLASS:
-        *p_attr_index = ATTR_INDEX_fileclass;
+        *p_attr_index = ATTR_INDEX_fileclass_set;
         *p_compar = Policy2FilterComparator(p_comp->op, p_comp->flags);
         p_value->value.val_str = p_comp->val.str;
         break;
@@ -1513,71 +1513,6 @@ bool class_is_whitelisted(const policy_descr_t *policy, const char *class_id)
     return false;
 }
 
-static void fileclass_string_to_set(const char *fileclass_str, char *set_out, size_t out_sz)
-{
-    size_t n = 0;
-    const char *p = fileclass_str;
-    int token_idx = 0;
-
-    DisplayLog(LVL_FULL, POLICY_TAG, "Converting fileclass string: '%s'", fileclass_str);
-
-    // Skip leading '+' or space
-    while (*p == '+' || *p == ' ') p++;
-
-    while (*p) {
-        const char *end = strchr(p, '+');
-        size_t token_len = end ? (size_t)(end - p) : strlen(p);
-
-        // Skip empty tokens
-        if (token_len > 0) {
-            char token[128] = "";
-            // Ensure it's null-terminated
-            size_t copy_len = (token_len < sizeof(token)-1) ? token_len : (sizeof(token)-1);
-            memcpy(token, p, copy_len);
-            token[copy_len] = '\0'; // explicit null-terminate
-
-            DisplayLog(LVL_FULL, POLICY_TAG, "Fileclass token %d: '%s'", token_idx, token);
-
-            // Separators
-            if (n > 0 && n < out_sz - 1)
-                set_out[n++] = ',';
-
-            // Output
-            if (n + copy_len < out_sz) {
-                memcpy(set_out + n, token, copy_len);
-                n += copy_len;
-                set_out[n] = '\0'; // always re-null-terminate after writing token
-            } else {
-                DisplayLog(LVL_FULL, POLICY_TAG,
-                           "Skipping token '%s' (buffer too small)", token);
-            }
-
-            token_idx++;
-        }
-
-        // Move past '+'
-        if (end)
-            p = end + 1;
-        else
-            break;
-    }
-
-    set_out[n] = '\0';
-    DisplayLog(LVL_FULL, POLICY_TAG, "Resulting fileclass_set: '%s'", set_out);
-}
-
-static void update_fileclass_set(attr_set_t *attrs)
-{
-    if (ATTR_MASK_TEST(attrs, fileclass) && !EMPTY_STRING(ATTR(attrs, fileclass))) {
-        fileclass_string_to_set(ATTR(attrs, fileclass),
-                                ATTR(attrs, fileclass_set),
-                                sizeof(ATTR(attrs, fileclass_set)));
-        ATTR_MASK_SET(attrs, fileclass_set);
-    } else {
-        ATTR_MASK_UNSET(attrs, fileclass_set);
-    }
-}
-
 /* Match classes according to p_attrs_cached+p_attrs_new,
  * set the result in p_attrs_new->fileclass.
  */
@@ -1586,10 +1521,11 @@ int match_classes(const entry_id_t *id, attr_set_t *p_attrs_new,
 {
     unsigned int i;
     int ok = 0;
-    int left = sizeof(ATTR(p_attrs_new, fileclass));
+    /* Use a temp buffer to simulate the old fileclass logic */
+    char fileclass_buf[1024];
+    char *pcur = fileclass_buf;
+    int left = sizeof(fileclass_buf);
 
-    /* initialize output fileclass */
-    char *pcur = ATTR(p_attrs_new, fileclass);
     *pcur = '\0';
 
     attr_set_t attr_cp = ATTR_SET_INIT;
@@ -1607,16 +1543,15 @@ int match_classes(const entry_id_t *id, attr_set_t *p_attrs_new,
             continue;
         }
 
-        switch (_entry_matches
-                (id, &attr_cp, &fset->definition, NULL, NULL, true)) {
+        switch (_entry_matches(id, &attr_cp, &fset->definition, NULL, NULL, true)) {
         case POLICY_MATCH:
             ok++;
-            if (EMPTY_STRING(ATTR(p_attrs_new, fileclass))) {
+            if (*fileclass_buf == '\0') {
                 strncpy(pcur, fset->fileset_id, left);
                 left -= strlen(pcur);
                 pcur += strlen(pcur);
             } else if (left > 1) {
-                *pcur = LIST_SEP_CHAR;
+                *pcur = LIST_SEP_CHAR; // still a plus or whatever LIST_SEP is (legacy '+'), or you can use ',' directly.
                 pcur++;
                 strncpy(pcur, fset->fileset_id, left - 1);
                 left -= strlen(pcur) + 1;
@@ -1640,17 +1575,27 @@ int match_classes(const entry_id_t *id, attr_set_t *p_attrs_new,
         }
     }
 
-    /* no fileclass could be matched without an error */
+    /* Build fileclass_set from the temporary local buffer */
     if (policies.fileset_count != 0 && ok == 0) {
-        ATTR_MASK_UNSET(p_attrs_new, fileclass);
+        ATTR_MASK_UNSET(p_attrs_new, fileclass_set);
     } else {
+        // Convert to correct CSV format (replace '+' with ',')
+        char *src = fileclass_buf, *dst = ATTR(p_attrs_new, fileclass_set);
+        size_t rem = sizeof(ATTR(p_attrs_new, fileclass_set));
+        while (*src && rem > 1) {
+            if (*src == LIST_SEP_CHAR)
+                *dst++ = ','; // or keep as-is if you want '+'
+            else
+                *dst++ = *src;
+            src++;
+            rem--;
+        }
+        *dst = '\0';
+        ATTR_MASK_SET(p_attrs_new, fileclass_set);
+        /* update class_update as before, if needed */
         ATTR(p_attrs_new, class_update) = time(NULL);
-        ATTR_MASK_SET(p_attrs_new, fileclass);
         ATTR_MASK_SET(p_attrs_new, class_update);
     }
-
-    // Update the SET column's value at the same time as fileclass
-    update_fileclass_set(p_attrs_new);
 
     ListMgr_FreeAttrs(&attr_cp);
     return 0;

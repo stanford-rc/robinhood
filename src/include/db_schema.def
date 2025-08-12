@@ -127,7 +127,6 @@ md_update,	 unsigned int, DB_UINT, 0, FREQ_ACCESS
 invalid, 	 bool, DB_BOOL, 0, FREQ_ACCESS
 
 # fileclasses and last update
-fileclass,        char,           DB_TEXT,   1024,   FREQ_ACCESS | SEPD_LIST
 fileclass_set,    char,           DB_SET,    1024,   FREQ_ACCESS | INDEXED
 class_update,     unsigned int,   DB_UINT,      0,   FREQ_ACCESS
 

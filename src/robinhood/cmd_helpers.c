@@ -624,9 +624,6 @@ const char *attr2str(attr_set_t *attrs, const entry_id_t *id,
         strftime(out, out_sz, "%Y/%m/%d %T", localtime_r(&tt, &stm));
         return out;
 
-    case ATTR_INDEX_fileclass:
-        return ATTR(attrs, fileclass);
-
     case ATTR_INDEX_fileclass_set:
         return class_format(ATTR(attrs, fileclass_set), out, out_sz);
 
