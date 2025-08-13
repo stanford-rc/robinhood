@@ -1194,7 +1194,7 @@ static int append_class_filter(lmgr_filter_t *filter, bool *initialized)
 
     tok = strtok_r(tmp, "+,", &saveptr); // Accept both '+' and ',' as separator
     while (tok != NULL) {
-        fv.value.val_str = strdup(tok); // important
+        fv.value.val_str = tok; // just assign
         rc = lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass_set, SET_MEMBER,
                                      fv, 0); /* AND logic is default */
         if (rc)

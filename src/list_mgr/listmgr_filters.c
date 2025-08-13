@@ -89,7 +89,7 @@ static int lmgr_simple_filter_dup_buffers(lmgr_filter_t *p_filter,
      * and FILTER_FLAG_ALLOC_LIST */
 
     if ((comparator == LIKE) || (comparator == UNLIKE) || (comparator == RLIKE)
-        || (comparator == ILIKE) || (comparator == IUNLIKE)) {
+        || (comparator == ILIKE) || (comparator == IUNLIKE) || (comparator == SET_MEMBER)) {
         int rc;
         char *newstr = MemAlloc(strlen(p_value->value.val_str) + 1);
 
