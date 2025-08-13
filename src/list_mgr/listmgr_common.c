@@ -990,8 +990,7 @@ char *compar2str(filter_comparator_t compar)
     case NOTNULL:
         return " IS NOT NULL";
     case SET_MEMBER:
-        DisplayLog(LVL_CRIT, LISTMGR_TAG,
-            "compar2str() called with SET_MEMBER, should be handled specially in filter2str!");
+        /* see FIND_IN_SET in filter2str() */
         return "";
     }
 
@@ -1217,7 +1216,6 @@ static void attr2filter_field(GString *str, table_enum table,
 
             print_func_call(str, attr, prefix);
         } else {    /* std field */
-
             if (prefix_table)
                 g_string_append_printf(str, "%s.",
                                        table2name(table ==
@@ -1314,39 +1312,6 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                 continue;
             }
 
-            if (index == ATTR_INDEX_fileclass_set &&
-                p_filter->filter_simple.filter_compar[i] == SET_MEMBER &&
-                table == T_MAIN) { // <--- only emit for ENTRIES context
-
-                const char *v = p_filter->filter_simple.filter_value[i].value.val_str;
-
-                if (nbfields > 0 || leading_and)
-                    g_string_append(str, " AND ");
-
-                if (p_filter->filter_simple.filter_flags[i] & FILTER_FLAG_NOT) {
-                    g_string_append_printf(str, "NOT FIND_IN_SET('%s', ENTRIES.fileclass_set)", v);
-                } else {
-                    g_string_append_printf(str, "FIND_IN_SET('%s', ENTRIES.fileclass_set)", v);
-                }
-                nbfields++;
-                continue; // skip legacy handling
-            }
-            if (index == ATTR_INDEX_fileclass_set &&
-                p_filter->filter_simple.filter_compar[i] == EQUAL &&
-                table == T_MAIN) {
-
-                const char *v = p_filter->filter_simple.filter_value[i].value.val_str;
-
-                if (nbfields > 0 || leading_and)
-                    g_string_append(str, " AND ");
-
-                g_string_append_printf(str, "ENTRIES.fileclass_set = '%s'", v);
-
-                DisplayLog(LVL_DEBUG, LISTMGR_TAG, "fileclass_set EQUAL");
-                nbfields++;
-                continue;
-            }
-
             if (match || (table == T_NONE)) {
                 /*
                  * if this is a begin_end block add new parenthesing
@@ -1423,8 +1388,9 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                  & (FILTER_FLAG_BEGIN_BLOCK | FILTER_FLAG_END_BLOCK))
                 continue;
 
-            /* append field name or function call */
-            attr2filter_field(str, table, index, prefix_table);
+            if (p_filter->filter_simple.filter_compar[i] != SET_MEMBER)
+                /* append field name or function call */
+                attr2filter_field(str, table, index, prefix_table);
 
             if (!case_sensitive)
                 g_string_append(str, " USING latin1)");
@@ -1461,6 +1427,10 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                             printdbtype(&p_mgr->conn, str,
                                         field_infos[index].db_type, &typeu);
                         }
+                    } else if (index == ATTR_INDEX_fileclass_set &&
+                        p_filter->filter_simple.filter_compar[i] == SET_MEMBER) {
+                        g_string_append_printf(str, "FIND_IN_SET('%s', ENTRIES.fileclass_set)",
+                                               p_filter->filter_simple.filter_value[i].value.val_str);
                     } else {
                         char tmp[1024];
 
