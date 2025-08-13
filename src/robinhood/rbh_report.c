@@ -1211,7 +1211,10 @@ static int append_class_filter(lmgr_filter_t *filter, bool *initialized)
     return rc;
 }
 
-// Add in rbh_report.c
+/**
+ * Build filter on exact fileclass.
+ * Initialize the filter if it is not already initialized.
+ */
 static int append_class_eq_filter(lmgr_filter_t *filter, bool *initialized)
 {
     filter_value_t fv;

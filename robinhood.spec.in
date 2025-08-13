@@ -461,6 +461,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Wed Aug 13 2025 <thomas.leibovici@cea.fr> 3.2.0.srcc1-1
+- Implement fileclass_set
+
 * Wed Nov 20 2024 Thomas Leibovici <thomas.leibovici@cea.fr> 3.2.0-2
 - Fix packaging error for WebUI on EL7
 
