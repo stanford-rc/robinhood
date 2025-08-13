@@ -1331,6 +1331,21 @@ int filter2str(lmgr_t *p_mgr, GString *str, const lmgr_filter_t *p_filter,
                 nbfields++;
                 continue; // skip legacy handling
             }
+            if (index == ATTR_INDEX_fileclass_set &&
+                p_filter->filter_simple.filter_compar[i] == EQUAL &&
+                table == T_MAIN) {
+
+                const char *v = p_filter->filter_simple.filter_value[i].value.val_str;
+
+                if (nbfields > 0 || leading_and)
+                    g_string_append(str, " AND ");
+
+                g_string_append_printf(str, "ENTRIES.fileclass_set = '%s'", v);
+
+                DisplayLog(LVL_DEBUG, LISTMGR_TAG, "fileclass_set EQUAL");
+                nbfields++;
+                continue;
+            }
 
             if (match || (table == T_NONE)) {
                 /*

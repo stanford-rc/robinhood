@@ -150,6 +150,7 @@ static struct option option_tab[] = {
     /* additional options for topusers etc... */
     {"filter-path", required_argument, NULL, 'P'},
     {"filter-class", required_argument, NULL, 'C'},
+    {"filter-class-eq", required_argument, NULL, 'E'},
     {"filter-project", required_argument, NULL, 'p'},
 // filter status
     {"split-user-groups", no_argument, NULL, 'S'},
@@ -185,7 +186,7 @@ static struct option option_tab[] = {
 
 };
 
-#define SHORT_OPT_STRING    "aiDe:u:g:d:s:rU:P:C:Rf:cql:hVFSJo:O:p:"
+#define SHORT_OPT_STRING    "aiDe:u:g:d:s:rU:P:C:E:Rf:cql:hVFSJo:O:p:"
 
 static const char *cmd_help = _B "Usage:" B_ " %s [options]\n";
 
@@ -257,6 +258,9 @@ static const char *filter_help =
     "    " _B "-C" B_ " " _U "class_expr" U_ ", "
            _B "--filter-class" B_ " " _U "class_expr" U_ "\n"
     "        Only report entries in the matching fileclasses.\n"
+    "    " _B "-E" B_ " " _U "class_expr" U_ ", "
+           _B "--filter-class-eq" B_ " " _U "class_expr" U_ "\n"
+    "        Only report entries with exactly the given fileclass (faster).\n"
     "    " _B "-p" B_ " " _U "projid" U_ ", "
            _B "--filter-project" B_ " " _U "projid" U_ "\n"
     "        Only report entries with the given project_id.\n"
@@ -384,6 +388,7 @@ static lmgr_t lmgr;
 /* global filter variables */
 char path_filter[RBH_PATH_MAX] = "";
 char class_filter[1024] = "";
+char class_eq_filter[1024] = "";
 int  projid = -1;
 unsigned int count_min = 0;
 
@@ -1206,6 +1211,22 @@ static int append_class_filter(lmgr_filter_t *filter, bool *initialized)
     return rc;
 }
 
+// Add in rbh_report.c
+static int append_class_eq_filter(lmgr_filter_t *filter, bool *initialized)
+{
+    filter_value_t fv;
+
+    if ((initialized != NULL) && !(*initialized)) {
+        lmgr_simple_filter_init(filter);
+        *initialized = true;
+    }
+
+    // Just set the value for EQUAL (exact match), no tokenization
+    fv.value.val_str = class_eq_filter;
+    return lmgr_simple_filter_add(filter, ATTR_INDEX_fileclass_set, EQUAL, fv, 0);
+}
+
+
 /**
  * add filter on project id
  */
@@ -1254,8 +1275,16 @@ static int mk_global_filters(lmgr_filter_t *filter, bool do_display,
         if (rc)
             return rc;
     }
-
-   if (projid != -1) {
+    if (!EMPTY_STRING(class_eq_filter)) {
+        if (do_display) {
+            char class_buf[1024];
+            printf("filter class (exact): %s\n", class_format(class_eq_filter, class_buf, sizeof(class_buf)));
+        }
+        rc = append_class_eq_filter(filter, initialized);
+        if (rc)
+            return rc;
+    }
+    if (projid != -1) {
         if (do_display)
             printf("filter projid: %u\n", projid);
 
@@ -2735,8 +2764,28 @@ int main(int argc, char **argv)
             if (class_info && !EMPTY_STRING(class_filter))
                 fprintf(stderr,
                         "WARNING: --filter-class conflicts with --class-info parameter. ignored.\n");
+            else if (!EMPTY_STRING(class_eq_filter))
+                fprintf(stderr,
+                        "WARNING: --filter-class (-C) ignored because --filter-class-eq (-E) is set.\n");
             else
                 rh_strncpy(class_filter, optarg, 1024);
+            break;
+
+        case 'E':
+            if (!optarg) {
+                fprintf(stderr,
+                        "Missing mandatory argument <class> for --filter-class-eq\n");
+                exit(1);
+            }
+            if (class_info && !EMPTY_STRING(class_eq_filter))
+                fprintf(stderr,
+                        "WARNING: --filter-class-eq conflicts with --class-info parameter. ignored.\n");
+            else if (!EMPTY_STRING(class_filter)) {
+                fprintf(stderr,
+                        "WARNING: --filter-class (-C) is being overridden by --filter-class-eq (-E).\n");
+                class_filter[0] = '\0';  // Clear the regular class filter
+            } else
+                rh_strncpy(class_eq_filter, optarg, 1024);
             break;
 
         case 'p':

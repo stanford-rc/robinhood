@@ -22,6 +22,7 @@
 #include "listmgr_common.h"
 #include "rbh_logs.h"
 #include "rbh_misc.h"
+#include "policy_rules.h" // for set() definition
 #include <stdio.h>
 #include <pwd.h>
 #include <grp.h>
@@ -115,11 +116,21 @@ static void append_sql_type(GString *str, db_type_e type, unsigned int size)
                 append_sql_type(str, DB_TEXT, RBH_LOGIN_MAX - 1);
         }
         break;
-    case DB_SET:
-        g_string_append_printf(str,
-                               "set('system', 'mr_test_minio_n0','mr_test_minio_n1','mr_test_minio_n2','mr_test_minio_n3','mr_test2_minio_n0','mr_test2_minio_n1','mr_test2_minio_n2','mr_test2_minio_n3','mr_srcc_minio_n0','mr_srcc_minio_n1','mr_srcc_minio_n2','mr_srcc_minio_n3','mr_hnc_minio_n0','mr_hnc_minio_n1','mr_hnc_minio_n2','mr_hnc_minio_n3','mr_bil_minio_n0','mr_bil_minio_n1','mr_bil_minio_n2','mr_bil_minio_n3','mr_dlab_minio_n0','mr_dlab_minio_n1','mr_dlab_minio_n2','mr_dlab_minio_n3','mr_campus_minio_n0','mr_campus_minio_n1','mr_campus_minio_n2','mr_campus_minio_n3','hr_campus_minio_n0','hr_campus_minio_n1','hr_campus_minio_n2','hr_campus_minio_n3')");
+    case DB_SET: {
+        g_string_append(str, "set(");
+        int first = 1;
+        for (int i = 0; i < policies.fileset_count; i++) {
+            fileset_item_t *fset = &policies.fileset_list[i];
+            if (fset->matchable) {
+                if (!first)
+                    g_string_append_c(str, ',');
+                g_string_append_printf(str, "'%s'", fset->fileset_id);
+                first = 0;
+            }
+        }
+        g_string_append_c(str, ')');
         break;
-    }
+    }}
 }
 
 /** builds [,] <field_name> <field_type> [DEFAULT <default_val>] */
