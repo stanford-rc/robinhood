@@ -819,6 +819,20 @@ static void logrec2dbneed(struct entry_proc_op_t *p_op)
     tmp = attrs_for_status_mask(status_scope, false);
     tmp = attr_mask_and_not(&tmp, &p_op->fs_attrs.attr_mask);
     p_op->db_attr_need = attr_mask_or(&p_op->db_attr_need, &tmp);
+
+    /* In case of a RENAME, match the new name (not the one from the DB). */
+    if ((logrec->cr_type == CL_EXT)
+        && (p_op->db_attr_need.std & ATTR_MASK_fullpath)) {
+        int rc;
+
+        rc = Lustre_GetFullPath(&p_op->entry_id,
+                                ATTR(&p_op->fs_attrs, fullpath),
+                                sizeof(ATTR(&p_op->fs_attrs, fullpath)));
+        if (rc == 0) {
+            ATTR_MASK_SET(&p_op->fs_attrs, fullpath);
+            p_op->db_attr_need.std &= ~ATTR_MASK_fullpath;
+        }
+    }
 }
 #endif
 
