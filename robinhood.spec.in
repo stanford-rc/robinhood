@@ -460,10 +460,14 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Mon Oct  6 2025 <thomas.leibovici@cea.fr> 3.2.0.srcc2-1
+* Tue Oct  7 2025 <sthiell@stanford.edu> 3.2.0.srcc4-1
+- Revert Remove RENAME faulty optimization block in std_pipeline.c
+- force a re-evaluation of the full path on RNMTO
+
+* Mon Oct  6 2025 <sthiell@stanford.edu> 3.2.0.srcc2-1
 - Remove RENAME faulty optimization block in std_pipeline.c
 
-* Wed Aug 13 2025 <thomas.leibovici@cea.fr> 3.2.0.srcc1-1
+* Wed Aug 13 2025 <sthiell@stanford.edu> 3.2.0.srcc1-1
 - Implement fileclass_set
 
 * Wed Nov 20 2024 Thomas Leibovici <thomas.leibovici@cea.fr> 3.2.0-2
