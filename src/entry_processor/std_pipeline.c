@@ -344,8 +344,9 @@ static int EntryProc_FillFromLogRec(struct entry_proc_op_t *p_op,
         if (logrec->cr_type == CL_EXT) {
             /* in case of a rename, the path info must be set */
             check_path_info(p_op, "RENAME");
-            /* We must force a re-evaluation of the full path to
-             * correctly update path-based attributes like fileclasses. */
+            /* Unset the stale fullpath from the database attributes to prevent its use. */
+            ATTR_MASK_UNSET(&p_op->db_attrs, fullpath);
+            /* Force a re-evaluation of the full path in the next stage. */
              attr_mask_set_index(&p_op->fs_attr_need, ATTR_INDEX_fullpath);
         }
 
