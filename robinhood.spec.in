@@ -460,6 +460,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Oct 23 2025 <sthiell@stanford.edu> 3.2.0.srcc5-1
+- Reapply RENAME faulty optimization block in std_pipeline.c
+- And invalidate stale path on RENAME
+
 * Tue Oct  7 2025 <sthiell@stanford.edu> 3.2.0.srcc4-1
 - Revert Remove RENAME faulty optimization block in std_pipeline.c
 - force a re-evaluation of the full path on RNMTO
