@@ -433,7 +433,7 @@ static int lhsm_get_status(const char *path, hsm_status_t *p_status,
         }
     } else if (file_status.hus_states & HS_EXISTS) {
         /* new file, not yet archived successfully */
-        *p_status = STATUS_MODIFIED;
+        *p_status = STATUS_ARCHIVE_RUNNING;
     } else {
         /* In this case: file has non null status and !HS_DIRTY and !HS_ARCHIVED
          * and !HS_EXISTS.
