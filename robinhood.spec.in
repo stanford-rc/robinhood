@@ -460,6 +460,12 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Nov  7 2025 <sthiell@stanford.edu> 3.2.0.srcc7-1
+- Implement fileclass_set for lhsm_remove
+
+* Mon Oct 27 2025 <sthiell@stanford.edu> 3.2.0.srcc6-1
+- Assume ARCHIVE_RUNNING on HS_EXISTS
+
 * Thu Oct 23 2025 <sthiell@stanford.edu> 3.2.0.srcc5-1
 - Reapply RENAME faulty optimization block in std_pipeline.c
 - And invalidate stale path on RENAME
