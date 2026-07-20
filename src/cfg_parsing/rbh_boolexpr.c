@@ -172,7 +172,7 @@ static struct criteria_descr_t {
 #ifdef _LUSTRE
     [CRITERIA_POOL] = {"ost_pool", ATTR_MASK_stripe_info, PT_STRING, 0, 0},
     [CRITERIA_OST] =
-        {"ost_index", ATTR_MASK_stripe_items, PT_INT, PFLG_POSITIVE, 0},
+        {"ost_index", ATTR_MASK_stripe_items, PT_STRING, 0, 0},
 #endif
     [CRITERIA_FILECLASS] = {"fileclass", ATTR_MASK_fileclass, PT_STRING,
                             PFLG_NO_SLASH, CMP_FLG_INSENSITIVE},
@@ -1076,6 +1076,7 @@ static int print_condition(const compare_triplet_t *p_triplet, char *out_str,
     case CRITERIA_FILECLASS:
 #ifdef _LUSTRE
     case CRITERIA_POOL:
+    case CRITERIA_OST:
 #endif
         return snprintf(out_str, str_size, "%s %s \"%s\"",
                         criteria2str(p_triplet->crit), op2str(p_triplet->op),
@@ -1088,9 +1089,6 @@ static int print_condition(const compare_triplet_t *p_triplet, char *out_str,
 
         /* int values */
     case CRITERIA_DEPTH:
-#ifdef _LUSTRE
-    case CRITERIA_OST:
-#endif
     case CRITERIA_DIRCOUNT:
     case CRITERIA_NLINK:
         return snprintf(out_str, str_size, "%s %s %d",
