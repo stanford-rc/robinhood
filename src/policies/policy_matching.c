@@ -1156,8 +1156,6 @@ static policy_match_t eval_condition(const entry_id_t *p_entry_id,
                         return POLICY_MATCH;
                     }
                 }
-                if (stripe_index >= 0 && stripe_index <= i)
-                    break; /* will never match */
             }
             /* no matching OST:
              * - if the operator is !=, the entry matches
